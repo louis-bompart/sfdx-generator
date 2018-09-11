@@ -11,12 +11,17 @@ import * as path from "path";
 import * as moment from "moment";
 import { exec, ExecOptions } from "child_process";
 
+export interface IGeneratorOptions {
+  SFDXPath: string;
+  outputDirectory: string;
+  templateDirectory: string;
+  fileExtension: string;
+}
+
 export class Generator {
   templateHelpers: any = {};
-  constructor(
-    private SFDXPath: string = "sfdx",
-    private rootDirectory: string = path.resolve(__dirname, "./../..")
-  ) {
+
+  constructor(private options: IGeneratorOptions) {
     this.initializeTemplateHelpers();
   }
 
@@ -63,24 +68,27 @@ export class Generator {
     });
 
     const templateFile = fs
-      .readFileSync(path.resolve(this.rootDirectory, "./src/generator/templates/class.ejs"))
+      .readFileSync(path.resolve(this.options.templateDirectory, "class.ejs"))
       .toString();
     const classTemplate = _.template(templateFile);
 
     // Cleaning generated modules.
-    const directoryPath = path.resolve(this.rootDirectory, "./generated");
+
     try {
-      fs.removeSync(directoryPath);
+      fs.removeSync(this.options.outputDirectory);
     } catch (e) {
       // Ignore
     }
 
-    fs.mkdirSync(directoryPath);
+    fs.mkdirSync(this.options.outputDirectory);
 
     _.forEach(classDefinitions, classDefinition => {
       let classImplementation = classTemplate(this.addTemplateHelper(classDefinition));
       fs.writeFileSync(
-        path.resolve(this.rootDirectory, "./generated/" + classDefinition.fileName + ".ts"),
+        path.resolve(
+          this.options.outputDirectory,
+          classDefinition.fileName + "." + this.options.fileExtension
+        ),
         classImplementation
       );
     });
@@ -90,12 +98,12 @@ export class Generator {
     };
 
     const templateSFDXFile = fs
-      .readFileSync(path.resolve(this.rootDirectory, "./src/generator/templates/sfdxClass.ejs"))
+      .readFileSync(path.resolve(this.options.templateDirectory, "sfdxClass.ejs"))
       .toString();
     const sfdxClassTemplate = _.template(templateSFDXFile);
 
     fs.writeFileSync(
-      path.resolve(this.rootDirectory, "./generated/generatedClient.ts"),
+      path.resolve(this.options.outputDirectory, "generatedClient." + this.options.fileExtension),
       sfdxClassTemplate(this.addTemplateHelper(classDefinitionsTemplateElement))
     );
   }
@@ -216,7 +224,7 @@ export class Generator {
 
   private runCommand(command: string, options?: ExecOptions): Promise<string> {
     let executePromise = new Promise<string>((resolve, reject) => {
-      const fullCommand = this.SFDXPath + " " + command;
+      const fullCommand = this.options.SFDXPath + " " + command;
       exec(fullCommand, (error, stdout, stderr) => {
         if (!_.isEmpty(stderr) || error !== null) {
           console.log(error);
