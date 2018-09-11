@@ -4,7 +4,7 @@ import {
   IFunctionDefinition,
   IParameterDefinition,
   IClassDefinitions
-} from "./templates/classDefinition";
+} from "./classDefinition";
 import * as fs from "fs-extra";
 import * as _ from "underscore";
 import * as path from "path";
