@@ -6,26 +6,34 @@
 [![Coveralls](https://img.shields.io/coveralls/coveo/sfdx-js.svg)](https://coveralls.io/github/coveo/sfdx-js)
 [![Dev Dependencies](https://david-dm.org/coveo/sfdx-js/dev-status.svg)](https://david-dm.org/coveo/sfdx-js?type=dev)
 
-A TypeScript compatible JavaScript wrapper for Salesforce DX CLI.
+A typescript tool that generates SFDX wrappers
 
 ### Usage
  ```
-    const sfdx = require('sfdx-js').Client.createUsingPath('sfdx')
-    sfdx.auth.webLogin().then(function() {
-      console.log('done!');
+    var generator = require('sfdx-generator')
+    var path = require('path')
+    var root = path.resolve(__dirname, './..')
+    var generator = new generator.Generator({
+      SFDXPath: 'sfdx',
+      outputDirectory: path.resolve(root, 'src/generated'),
+      templateDirectory: path.resolve(root, './tools/src/generator/templates'),
+      fileExtension: 'ts'
+    })
+
+    var commandFile = require('../commands.json')
+    var stringFile = JSON.stringify(commandFile)
+    generator.generate(stringFile).then(() => {
+      console.log('Generating done')
     })
  ```
 
 ### Documentation
 Read our doc here:
-https://coveo.github.io/sfdx-js/
+https://coveo.github.io/sfdx-generator/
 
 ### dev scripts
 
- - `npm t`: Run test suite.
  - `npm start`: Runs `npm run build` in watch mode.
- - `npm run test:watch`: Run test suite in [interactive watch mode](http://facebook.github.io/jest/docs/cli.html#watch).
- - `npm run test:prod`: Run linting and generate coverage.
  - `npm run build`: Generage bundles and typings, create docs.
  - `npm run lint`: Lints code.
  - `npm run commit`: Commit using conventional commit style ([husky](https://github.com/typicode/husky) will tell you to use it if you haven't :wink:).
